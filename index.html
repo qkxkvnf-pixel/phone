@@ -41,6 +41,8 @@ table.ck input{width:24px;height:24px}
    <tr><td>LG전자 우리카드</td><td class="c"><input type="checkbox" data-r="2" data-k="0"></td><td class="c"><input type="checkbox" data-r="2" data-k="1"></td></tr>
    <tr><td>LG전자 국민카드</td><td class="c"><input type="checkbox" data-r="3" data-k="0"></td><td class="c"><input type="checkbox" data-r="3" data-k="1"></td></tr>
   </table>
+  <label>내 연락처 (문자 맨 아래에 표시 · 한 번 입력하면 저장)</label>
+  <input id="me" type="tel" inputmode="tel" placeholder="010-0000-0000">
   <div class="ex">하단 예시 칸에도 위 3개 금액이 그대로 표시됩니다.</div>
  </div>
  <div class="card full">
@@ -91,8 +93,13 @@ function draw(){
 document.querySelectorAll('#cards input').forEach(c=>c.addEventListener('change',draw));
 $('c').addEventListener('input',()=>{$('c').dataset.manual='1';draw()});
 function blob(){return new Promise(r=>cv.toBlob(r,'image/png'))}
+function phoneFmt(v){const d=String(v).replace(/\D/g,'').slice(0,11);if(d.length<=3)return d;if(d.length<=7)return d.slice(0,3)+'-'+d.slice(3);if(d.length===10)return d.slice(0,3)+'-'+d.slice(3,6)+'-'+d.slice(6);return d.slice(0,3)+'-'+d.slice(3,7)+'-'+d.slice(7)}
+function contact(){const d=$('me').value.replace(/\D/g,'');return d.length>=9?'\n문의: '+phoneFmt(d):''}
+try{const sv=localStorage.getItem('guideMe');if(sv)$('me').value=sv}catch(e){}
+$('me').addEventListener('input',()=>{try{localStorage.setItem('guideMe',$('me').value)}catch(e){}});
+$('me').addEventListener('blur',()=>{$('me').value=phoneFmt($('me').value);try{localStorage.setItem('guideMe',$('me').value)}catch(e){}});
 function msg(){const A=num($('a').value),B=num($('b').value),C=num($('c').value);
- return `[LG전자 구독 청구 금액 안내]\n월 구독료(카드결제): ${fmt(A)}원\n제휴카드 청구할인: ${fmt(B)}원\n실제 출금금액: ${fmt(C)}원\n※ 할인은 카드 청구 시 적용되며, 카드 문자/앱에는 할인 전 금액이 표시됩니다.\n문의: LG전자 고객센터 1544-7777`}
+ return `[LG전자 구독 청구 금액 안내]\n월 구독료(카드결제): ${fmt(A)}원\n제휴카드 청구할인: ${fmt(B)}원\n실제 출금금액: ${fmt(C)}원\n※ 할인은 카드 청구 시 적용되며, 카드 문자/앱에는 할인 전 금액이 표시됩니다.${contact()}`}
 function say(m,bad){const e=$('status');e.textContent=m;e.style.color=bad?'#c00':'#06703a';e.style.display='block'}
 function ok(){if(num($('a').value)===null||num($('b').value)===null){say('월 구독료와 청구할인 금액을 먼저 입력해 주세요.',1);return false}return true}
 function showResult(){$('out').src=cv.toDataURL('image/png');$('outbox').style.display='block'}
